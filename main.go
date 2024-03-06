@@ -3,15 +3,16 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"bmo.siddhantsoftware.com/config"
+	"bmo.siddhantsoftware.com/runner"
 )
 
 
 
 func main() {
-    var config Config
-    err := config.Read()
-    var runner Runner
-    runner.Init(&config)
+    config, err := config.NewConfig()
+    runner := runner.NewRunner(config)
     args := os.Args
     if len(args) < 2 {
         fmt.Println("No command provided")
