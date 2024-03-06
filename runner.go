@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io/fs"
+	"path/filepath"
+	"strings"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -19,7 +21,15 @@ func (r *Runner) Init(config *Config) {
 }
 
 func (r *Runner) addFilePaths() {
-
+    filepath.WalkDir("./", func(path string, d fs.DirEntry, err error) error {
+        for _, file := range r.config.ExcludeFiles {
+            if file == path {
+                return nil;
+            }
+        }
+        err = r.watcher.Add(path)
+        return err
+    }) 
 }
 
 
@@ -27,7 +37,6 @@ func (r *Runner) addFilePaths() {
 func (r *Runner) Start() {
     var err error
     r.watcher, err = fsnotify.NewWatcher()
-    directories, err := os.ReadDir("./")
 
     if err != nil {
         fmt.Println("There was an error in watching")
@@ -47,7 +56,15 @@ func (r *Runner) Start() {
                 if event.Has(fsnotify.Write)   {
                     fmt.Println("modified file: ", event.Name)
                 } else if event.Has(fsnotify.Create) {
-                    r.watcher.Add(event.Name)
+                    flg := true
+                    for _, file := range r.config.ExcludeFiles {
+                        if strings.Index(event.Name, file) != -1 {
+                            flg = false
+                        }
+                    }
+                    if flg {
+                        r.watcher.Add(event.Name)
+                    }
                 }
             case err, ok := <-r.watcher.Errors:
                 if !ok {
@@ -56,19 +73,13 @@ func (r *Runner) Start() {
                 fmt.Println("error: ", err)
             }
         }
-    }()      
-    r.watcher.Add("")   
-    for _, dir := range directories {
-        err = r.watcher.Add(dir.Name())
+    }()    
 
-    }
-    for _, file := range r.config.ExcludeFiles {
-        err = r.watcher.Remove(file)
-        if err != nil {
-            panic(err)
-        }
-    }
+    r.addFilePaths()
+    
 
     <-make(chan struct {})
 
 }
+
+
