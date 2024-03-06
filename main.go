@@ -1,6 +1,9 @@
 package main
 
-import "os"
+import (
+	"fmt"
+	"os"
+)
 
 
 
@@ -8,14 +11,15 @@ func main() {
     var config Config
     config.Read()
     args := os.Args
-
-    for _, arg := range args {
-        switch(arg) {
-            case "run":
-                var runner Runner
-                runner.Start(&config)
-            case "init":
-                config.Init()
+    if len(args) < 2 {
+        fmt.Println("No command provided")
+    } else {
+        switch(args[1]) {
+        case "run":
+            var runner Runner
+            runner.Start(&config)
+        case "init":
+            config.Init(&args)
         }
     }
 }
