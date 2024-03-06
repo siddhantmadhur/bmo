@@ -20,6 +20,18 @@ func (r *Runner) Init(config *Config) {
    r.config = config; 
 }
 
+func (r *Runner) addFilePath(dir string) {
+    flg := true
+    for _, file := range r.config.ExcludeFiles {
+        if strings.Index(dir, file) != -1 {
+            flg = false
+        }
+    }
+    if flg {
+        r.watcher.Add(dir)
+    }
+}
+
 func (r *Runner) addFilePaths() {
     filepath.WalkDir("./", func(path string, d fs.DirEntry, err error) error {
         for _, file := range r.config.ExcludeFiles {
@@ -56,15 +68,7 @@ func (r *Runner) Start() {
                 if event.Has(fsnotify.Write)   {
                     fmt.Println("modified file: ", event.Name)
                 } else if event.Has(fsnotify.Create) {
-                    flg := true
-                    for _, file := range r.config.ExcludeFiles {
-                        if strings.Index(event.Name, file) != -1 {
-                            flg = false
-                        }
-                    }
-                    if flg {
-                        r.watcher.Add(event.Name)
-                    }
+                    r.addFilePath(event.Name)
                 }
             case err, ok := <-r.watcher.Errors:
                 if !ok {
