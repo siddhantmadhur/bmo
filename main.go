@@ -14,6 +14,8 @@ func main() {
             case "run":
                 var runner Runner
                 runner.Start(&config)
+            case "init":
+                config.Init()
         }
     }
 }

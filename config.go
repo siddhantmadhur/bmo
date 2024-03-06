@@ -1,6 +1,11 @@
 package main
 
-import "os"
+import (
+	"fmt"
+	"os"
+
+	"github.com/pelletier/go-toml/v2"
+)
 
 
 
@@ -13,10 +18,29 @@ type Config struct {
 
 
 func (c *Config) Read() {
-    os.ReadFile("./bmo.json")
-    c.Name = "Hello"
-    c.Files = []string{"./"}
 
+}
+
+func (c *Config) Init() {
+    _, err := os.ReadFile("./bmo.toml")
+    if err == nil {
+        //file exists
+        fmt.Println("Configuration already exists")        
+    } else {
+        //file doesn't exist
+        newFile, err := os.Create("bmo.toml")
+        if err != nil {
+            panic(err)
+        } 
+        var newConfig Config
+        var data []byte
+
+        data, err = toml.Marshal(newConfig)
+        newFile.Write(data)
+        if err == nil {
+            fmt.Println("Created default configration file")
+        }
+    }
 }
 
 
