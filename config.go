@@ -39,12 +39,12 @@ func (c *Config) Init(args *[]string) {
             panic(err)
         } 
         var newConfig Config
+        newConfig.ExcludeFiles = []string{"tmp", ".git"}
         var data []byte
         switch((*args)[2]) {
             case "go":
                 newConfig.Name = "go"
                 newConfig.BinaryCommand = "go build -o tmp/main ."
-                newConfig.ExcludeFiles = []string{"./tmp"}
                 fmt.Println("Don't forget to add ./tmp to .gitignore!")
         }
         data, err = toml.Marshal(newConfig)
