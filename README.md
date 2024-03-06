@@ -1,4 +1,6 @@
-# BMO
+# BMO [WIP]
+
+Currently Working On: Recursively watching filepath
 
 #### What is BMO?
 Use bmo to configure and run and compile complex build systems with additonal live reloading during developement. Similar to [Air](https://github.com/cosmtrek/air) but meant to be more compatible to frameworks such as Django, and Templ with live reloading
@@ -7,6 +9,11 @@ Example Scenario: Using golang, [html](https://htmx.org), [templ](https://templ.
 
 
 Feature list
+- [ ] Detect file changes
+    - [ ] Handle:
+        - [ ] Write
+        - [ ] Create
+        - [ ] Delete
 - [ ] Build step at execution
     - [ ] Compile javascript using esbuild
     - [ ] Compile golang
