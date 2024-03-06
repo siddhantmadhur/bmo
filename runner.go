@@ -16,6 +16,23 @@ type Runner struct {
     config *Config
 }
 
+
+func (r *Runner) HandleChange (filePath string) {
+    subPaths := strings.Split(filePath, "/")
+    ext := strings.Split(subPaths[len(subPaths)-1], ".")
+    if len(ext) < 2 {
+        panic("Error")
+    }else{
+        for _, com := range r.config.BuildCommands {
+            a, b := r.config.GetBuildCommand(com)
+            if a == ext[1] {
+                fmt.Println(b)
+            }
+        }
+    }
+}
+
+
 func (r *Runner) Init(config *Config) {
    r.config = config; 
 }
@@ -32,16 +49,22 @@ func (r *Runner) addFilePath(dir string) {
     }
 }
 
+
+
 func (r *Runner) addFilePaths() {
     filepath.WalkDir("./", func(path string, d fs.DirEntry, err error) error {
-        for _, file := range r.config.ExcludeFiles {
-            if file == path {
-                return nil;
-            }
-        }
         err = r.watcher.Add(path)
         return err
     }) 
+    
+    for _, file := range r.config.ExcludeFiles {
+       
+        filepath.WalkDir(file, func(path string, d fs.DirEntry, err error) error {
+            err = r.watcher.Remove(path)
+            return err
+        }) 
+    }
+    fmt.Println(r.watcher.WatchList())
 }
 
 
@@ -67,6 +90,7 @@ func (r *Runner) Start() {
                 }
                 if event.Has(fsnotify.Write)   {
                     fmt.Println("modified file: ", event.Name)
+                    r.HandleChange(event.Name)
                 } else if event.Has(fsnotify.Create) {
                     r.addFilePath(event.Name)
                 }

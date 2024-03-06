@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/pelletier/go-toml/v2"
 )
@@ -16,6 +17,32 @@ type Config struct {
     ExcludeFiles []string `json:"exclude_files"`
 }
 
+func (c *Config) GetBuildCommand(raw string) (string, string) {
+    spl := strings.Split(raw, ":") 
+    ext := spl[0]
+    com := spl[1]
+    return ext, com
+}
+
+func (c *Config) Add(args *[]string) error {
+    if len(*args) < 3 {
+        fmt.Println("No argument provided.")
+        os.Exit(0)
+    }
+    command := (*args)[2]
+    hand := strings.Split(command, ":")
+    if len(hand) == 2 {
+        c.BuildCommands = append(c.BuildCommands, command)
+        err := c.Write()
+        if err != nil {
+            panic(err)
+        }
+    }else{
+        fmt.Println("Function wasn't able to be parsed probably, make sure you're using quotes correctly.")
+        os.Exit(0)
+    }
+    return nil
+}
 
 func (c *Config) Read() error {
     file, err := os.ReadFile("./bmo.toml")
@@ -23,6 +50,15 @@ func (c *Config) Read() error {
         return err
     }
     err = toml.Unmarshal(file, &c)
+    return err
+}
+
+func (c *Config) Write() error {
+    data, err := toml.Marshal(c)
+    if err != nil {
+        return err
+    }
+    err = os.WriteFile("bmo.toml", data, 0777)
     return err
 }
 

@@ -10,7 +10,6 @@ import (
 func main() {
     var config Config
     err := config.Read()
-    
     var runner Runner
     runner.Init(&config)
     args := os.Args
@@ -22,10 +21,12 @@ func main() {
             os.Exit(0)
         }
         switch(args[1]) {
-        case "run":
+        case "start":
             runner.Start()
         case "init":
             config.Init(&args)
+        case "add":
+            config.Add(&args)
         }
     }
 }
