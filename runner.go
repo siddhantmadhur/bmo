@@ -11,13 +11,20 @@ import (
 
 type Runner struct {
     watcher *fsnotify.Watcher
+    config *Config
+}
+
+func (r *Runner) Init(config *Config) {
+   r.config = config; 
+}
+
+func (r *Runner) addFilePaths() {
 
 }
 
 
-func (r *Runner) addRecursively() {}
 
-func (r *Runner) Start(config *Config) {
+func (r *Runner) Start() {
     var err error
     r.watcher, err = fsnotify.NewWatcher()
     directories, err := os.ReadDir("./")
@@ -55,7 +62,7 @@ func (r *Runner) Start(config *Config) {
         err = r.watcher.Add(dir.Name())
 
     }
-    for _, file := range config.ExcludeFiles {
+    for _, file := range r.config.ExcludeFiles {
         err = r.watcher.Remove(file)
         if err != nil {
             panic(err)

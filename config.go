@@ -17,8 +17,13 @@ type Config struct {
 }
 
 
-func (c *Config) Read() {
-
+func (c *Config) Read() error {
+    file, err := os.ReadFile("./bmo.toml")
+    if err != nil {
+        return err
+    }
+    err = toml.Unmarshal(file, &c)
+    return err
 }
 
 func (c *Config) Init(args *[]string) {
