@@ -9,7 +9,7 @@ import (
 
 
 type Runner struct {
-    
+   
 
 }
 
@@ -44,14 +44,11 @@ func (r *Runner) Start(config *Config) {
         }
     }()      
     
-
-    cur := 0
-    for cur < len(files) {
-       err = watcher.Add(files[cur])
+    for _, file := range files {
+       err = watcher.Add(file)
        if err != nil {
             panic(err)
        }
-       cur += 1
     }
 
     <-make(chan struct {})

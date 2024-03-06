@@ -1,11 +1,19 @@
 package main
 
+import "os"
+
 
 
 func main() {
     var config Config
     config.Read()
+    args := os.Args
 
-    var runner Runner
-    runner.Start(&config)
+    for _, arg := range args {
+        switch(arg) {
+            case "run":
+                var runner Runner
+                runner.Start(&config)
+        }
+    }
 }
