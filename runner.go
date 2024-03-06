@@ -32,7 +32,7 @@ func (r *Runner) Start(config *Config) {
                 if !ok {
                     return 
                 }
-                if event.Has(fsnotify.Write) {
+                if event.Has(fsnotify.Write)  {
                     fmt.Println("modified file: ", event.Name)
                 }
             case err, ok := <-watcher.Errors:
