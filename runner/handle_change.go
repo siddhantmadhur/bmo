@@ -17,6 +17,7 @@ func (r *Runner) HandleChange (filePath string) {
             a, _ := r.config.GetBuildCommand(com)
             if a == ext[1] {
                 var wg sync.WaitGroup
+
                 go r.BuildDeps(&wg)
                 if r.proc.Process != nil {
                     r.proc.Process.Kill()
