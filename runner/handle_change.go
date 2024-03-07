@@ -15,6 +15,10 @@ func (r *Runner) HandleChange (filePath string) {
         for _, com := range r.config.BuildCommands {
             a, _ := r.config.GetBuildCommand(com)
             if a == ext[1] {
+                if r.proc.Process != nil {
+                    r.proc.Process.Kill()
+                    r.proc.Process.Wait()
+                }
                 r.stop <- true
                 r.BuildDeps()
                 go r.Run()
