@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"bufio"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -10,12 +11,16 @@ import (
 func (r *Runner) Run () {
     args := strings.Fields(r.config.BinaryCommand)
     cmd := exec.Command(args[0], args[1:]...) 
-    r.buildProcess = cmd.Process
-    fmt.Println("Starting now")
-    err := cmd.Start()
+    stdout, err := cmd.StdoutPipe()
     if err != nil {
         fmt.Println("Error: ",err)
     } 
+    fmt.Println("Starting now")
+    err = cmd.Start()
+    if err != nil {
+        fmt.Println("Error: ",err)
+    } 
+    buf := bufio.NewReader(stdout)
     for {
         select {
             case <-r.stop: 
@@ -23,6 +28,8 @@ func (r *Runner) Run () {
                 cmd.Process.Kill()
                 return
             default:
+                line, _, _ := buf.ReadLine()
+                fmt.Println(string(line))
         }
     }
 }
