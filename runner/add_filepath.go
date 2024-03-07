@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"fmt"
 	"io/fs"
 	"path/filepath"
 	"strings"
@@ -36,5 +35,4 @@ func (r *Runner) addFilePaths() {
             return err
         }) 
     }
-    fmt.Println(r.watcher.WatchList())
 }

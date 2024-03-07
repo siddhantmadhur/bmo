@@ -8,9 +8,6 @@ import (
 
 
 func (r *Runner) HandleChange (filePath string) {
-    if r.buildProcess != nil {
-        r.buildProcess.Kill()
-    } 
     subPaths := strings.Split(filePath, "/")
     ext := strings.Split(subPaths[len(subPaths)-1], ".")
     if len(ext) < 2 {
