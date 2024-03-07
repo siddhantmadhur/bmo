@@ -3,6 +3,7 @@ package runner
 import (
 	"fmt"
 	"regexp"
+	"sync"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -10,8 +11,8 @@ import (
 
 
 func (r *Runner) Start() {
-    r.BuildDeps()
-    go r.Run()    
+    var wg sync.WaitGroup
+    r.BuildDeps(&wg)
     var err error
     r.watcher, err = fsnotify.NewWatcher()
 
@@ -39,6 +40,7 @@ func (r *Runner) Start() {
                         }
                     }
                     if !flg {
+
                         fmt.Println("modified file: ", event.Name)
                         r.HandleChange(event.Name)
                     }
@@ -56,6 +58,8 @@ func (r *Runner) Start() {
 
     r.addFilePaths()
     
+    wg.Wait()
+    go r.Run()      
 
     <-make(chan struct {})
 
