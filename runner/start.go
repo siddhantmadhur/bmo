@@ -12,7 +12,8 @@ import (
 
 func (r *Runner) Start() {
     var wg sync.WaitGroup
-    r.BuildDeps(&wg)
+    wg.Add(1)
+    go r.BuildDeps(&wg)
     var err error
     r.watcher, err = fsnotify.NewWatcher()
 
