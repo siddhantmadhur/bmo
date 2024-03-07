@@ -17,10 +17,10 @@ func (r *Runner) HandleChange (filePath string) {
             if a == ext[1] {
                 if r.proc.Process != nil {
                     r.proc.Process.Kill()
-                    r.proc.Process.Wait()
                 }
                 r.stop <- true
                 r.BuildDeps()
+                r.proc.Process.Wait()
                 go r.Run()
             }
         }

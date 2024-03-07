@@ -31,7 +31,9 @@ func (r *Runner) Run () {
             default:
                 line, _, _ := buf.ReadLine()
                 //TODO: make the program not pause waiting for a new line
-                fmt.Println(string(line))
+                if string(line) != "" {
+                    fmt.Println(string(line))
+                }
         }
     }
 }
