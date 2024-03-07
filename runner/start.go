@@ -9,6 +9,8 @@ import (
 
 
 func (r *Runner) Start() {
+    r.BuildDeps()
+    r.Run()    
     var err error
     r.watcher, err = fsnotify.NewWatcher()
 
@@ -18,7 +20,7 @@ func (r *Runner) Start() {
     }
 
     defer r.watcher.Close()
-
+    
 
     go func() {
         for {
