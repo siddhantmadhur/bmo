@@ -2,6 +2,7 @@ package runner
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -30,8 +31,17 @@ func (r *Runner) Start() {
                     return 
                 }
                 if event.Has(fsnotify.Write)   {
-                    fmt.Println("modified file: ", event.Name)
-                    r.HandleChange(event.Name)
+                    flg := false
+                    for _, reg := range r.config.ExcludeRegex {
+                        found, _ := regexp.MatchString(reg, event.Name)
+                        if found {
+                            flg = true
+                        }
+                    }
+                    if !flg {
+                        fmt.Println("modified file: ", event.Name)
+                        r.HandleChange(event.Name)
+                    }
                 } else if event.Has(fsnotify.Create) {
                     r.addFilePath(event.Name)
                 }

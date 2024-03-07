@@ -18,6 +18,7 @@ type Config struct {
     BuildCommands []string `json:"commands"`
     BinaryCommand string `json:"binary_command"`
     ExcludeFiles []string `json:"exclude_files"`
+    ExcludeRegex []string `json:"exclude_regex"`
 }
 
 func (c *Config) GetBuildCommand(raw string) (string, string) {
