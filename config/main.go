@@ -16,15 +16,22 @@ func NewConfig() (*Config, error) {
 type Config struct {
     Name string `json:"name"`
     BuildCommands []string `json:"commands"`
+    FinalBuildCommand string `json:"final_command"`
     BinaryCommand string `json:"binary_command"`
     ExcludeFiles []string `json:"exclude_files"`
     ExcludeRegex []string `json:"exclude_regex"`
+    ProxyPort int `json:"proxy_port"`
+    WebServerUrl string `json:"web_server_url"`
 }
 
 func (c *Config) GetBuildCommand(raw string) (string, string) {
     spl := strings.Split(raw, ":") 
+    if len(spl) != 2 {
+        panic("Not appropriate: " + strings.Join(spl, " "))
+    }
     ext := spl[0]
     com := spl[1]
+    
     return ext, com
 }
 

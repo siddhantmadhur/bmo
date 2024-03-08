@@ -31,7 +31,8 @@ func (c *Config) Init(args *[]string) {
         switch((*args)[2]) {
             case "go":
                 newConfig.Name = "go"
-                newConfig.BinaryCommand = "go build -o tmp/main ."
+                newConfig.FinalBuildCommand = "go build -o ./tmp/main ."
+                newConfig.BinaryCommand = "./tmp/main"
                 fmt.Println("Don't forget to add ./tmp to .gitignore!")
         }
         data, err = toml.Marshal(newConfig)

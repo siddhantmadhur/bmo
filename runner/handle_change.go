@@ -8,6 +8,7 @@ import (
 
 
 func (r *Runner) HandleChange (filePath string) {
+
     subPaths := strings.Split(filePath, "/")
     ext := strings.Split(subPaths[len(subPaths)-1], ".")
     if len(ext) < 2 {
@@ -15,7 +16,7 @@ func (r *Runner) HandleChange (filePath string) {
     }else{
         var wg sync.WaitGroup
         wg.Add(1)
-        go r.BuildDep(&wg, ext[1])
+        go r.BuildDeps(&wg)
         if r.proc.Process != nil {
             r.proc.Process.Kill()
         }

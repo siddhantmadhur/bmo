@@ -17,6 +17,7 @@ func (r *Runner) Start() {
     var err error
     r.watcher, err = fsnotify.NewWatcher()
 
+    r.addFilePaths()
     if err != nil {
         fmt.Println("There was an error in watching")
         panic(err)
@@ -30,26 +31,30 @@ func (r *Runner) Start() {
             select {
             case event, ok := <-r.watcher.Events:
                 if !ok {
+                    panic("Watcher error")
                     return 
                 }
-                if event.Has(fsnotify.Write)   {
-                    flg := false
-                    for _, reg := range r.config.ExcludeRegex {
-                        found, _ := regexp.MatchString(reg, event.Name)
-                        if found {
-                            flg = true
-                        }
+                flg := true
+                for _, reg := range r.config.ExcludeRegex {
+                    match, err := regexp.Match(reg, []byte(event.Name))
+                    if err != nil {
+                        panic(err)
                     }
-                    if !flg {
-
-                        fmt.Println("modified file: ", event.Name)
-                        r.HandleChange(event.Name)
+                    if match {
+                        flg = false
                     }
-                } else if event.Has(fsnotify.Create) {
-                    r.addFilePath(event.Name)
+                }
+                if flg {
+                    if event.Has(fsnotify.Write)   {
+                        go r.HandleChange(event.Name)
+                    } else if event.Has(fsnotify.Create) {
+                        r.addFilePath(event.Name)
+                    }
+                    fmt.Println(event)
                 }
             case err, ok := <-r.watcher.Errors:
                 if !ok {
+                    panic("There was a watcher error")
                     return
                 }
                 fmt.Println("error: ", err)
@@ -57,7 +62,6 @@ func (r *Runner) Start() {
         }
     }()    
 
-    r.addFilePaths()
     
     wg.Wait()
     go r.Run()      
