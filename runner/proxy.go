@@ -1,4 +1,4 @@
-package proxy
+package runner
 
 import (
 	"embed"
@@ -7,23 +7,18 @@ import (
 	"strings"
 	"time"
 
-	"bmo.siddhantsoftware.com/config"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/proxy"
 )
 
-type Proxy struct {
-    config *config.Config
-}
 
 
 //go:embed proxy.js
 var f embed.FS
 
 
-func (p *Proxy) Start(c *config.Config) {
-    p.config = c
+func (r *Runner) StartProxy() {
     fmt.Println("Proxy starting...") 
 
     app := fiber.New()
@@ -59,7 +54,7 @@ func (p *Proxy) Start(c *config.Config) {
     }))
 
     app.All("/*", func(c *fiber.Ctx) error {
-        if err := proxy.Do(c, p.config.WebServerUrl + c.Path()); err != nil {
+        if err := proxy.Do(c, r.config.WebServerUrl + c.Path()); err != nil {
             return err
         }
         response := c.Response().Body()
