@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -45,10 +44,14 @@ func (r *Runner) StartProxy() {
         )
         
         for {
-            time.Sleep(time.Second * 2)
-            if err = c.WriteMessage(websocket.TextMessage, []byte("This is a test")); err != nil {
-                log.Println("write:", err)
-                break
+
+            select {
+                case <- r.stop: 
+                if err = c.WriteMessage(websocket.TextMessage, []byte("This is a test")); err != nil {
+                    log.Println("write:", err)
+                    break
+                }
+
             }
         }
     }))
