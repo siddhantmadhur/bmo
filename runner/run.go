@@ -27,6 +27,7 @@ func (r *Runner) Run () {
         select {
             case <-r.stop: 
                 fmt.Println("Stop signal given")
+
                 return
             default:
                 line, _, _ := buf.ReadLine()

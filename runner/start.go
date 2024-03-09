@@ -50,7 +50,6 @@ func (r *Runner) Start() {
                     } else if event.Has(fsnotify.Create) {
                         r.addFilePath(event.Name)
                     }
-                    fmt.Println(event)
                 }
             case err, ok := <-r.watcher.Errors:
                 if !ok {

@@ -44,10 +44,9 @@ func (r *Runner) StartProxy() {
         )
         
         for {
-
             select {
                 case <- r.stop: 
-                if err = c.WriteMessage(websocket.TextMessage, []byte("This is a test")); err != nil {
+                if err = c.WriteMessage(websocket.TextMessage, []byte("BMO: Update detected!")); err != nil {
                     log.Println("write:", err)
                     break
                 }
