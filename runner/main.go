@@ -1,10 +1,14 @@
 package runner
 
 import (
+	"bufio"
 	"fmt"
 	"io/fs"
 	"log"
+	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/TwiN/go-color"
@@ -13,18 +17,55 @@ import (
 
 
 func New() Runner {
-    queue := make(chan []string) 
+    queue := make(chan bool) 
     var waitGroup sync.WaitGroup
-    return Runner{
+
+    
+
+    var runner = Runner{
         Queue: queue,
-        WaitGroup: waitGroup,
+        WaitGroup: &waitGroup,
     }
+
+    waitGroup.Add(1); 
+    go runner.Start()
+    go runner.RunProxyServer()
+    return runner;
+}
+
+
+func (r *Runner) RunProxyServer() {
+    defer r.WaitGroup.Done();
+    exec.Command("templ", "generate").Run()
+    exec.Command("go", "build", "-o", "./tmp/main").Run()
+    r.Process = exec.Command("./tmp/main")
+    stdout, err := r.Process.StdoutPipe()
+    if err != nil {
+        fmt.Println(color.Ize(color.Red, "\t[BMO] There was an error: "), err.Error())
+        os.Exit(1)
+    }
+    err = r.Process.Start()
+    fmt.Println(color.Ize(color.White, fmt.Sprintf("\t[BMO] Process is running at %d ", r.Process.Process.Pid)))
+
+    if err != nil {
+        fmt.Println(color.Ize(color.Red, "\t[BMO] There was an error: "), err.Error())
+        os.Exit(1)
+    }
+
+    scanner := bufio.NewScanner(stdout)
+    scanner.Split(bufio.ScanLines)
+    for scanner.Scan() {
+        m := scanner.Text()
+        fmt.Println(m)
+    }
+
 }
 
 
 type Runner struct {
-     Queue chan []string        
-     WaitGroup sync.WaitGroup
+     Queue chan bool        
+     WaitGroup *sync.WaitGroup
+     Process *exec.Cmd
 }
 
 
@@ -32,9 +73,7 @@ func (r *Runner) Start() {
     fmt.Println(color.Ize(color.Blue, "\t[BMO] Starting event listener..."));
     
 
-    go r.Listener()
-    r.DetectFileChanges()
-
+    go r.DetectFileChanges()
 
     for {}
 
@@ -42,7 +81,7 @@ func (r *Runner) Start() {
 
 func (r *Runner) DetectFileChanges() {
     watcher, err := fsnotify.NewWatcher()
-
+    add_all_paths(watcher)
     if err != nil {
         fmt.Println(color.Ize(color.Red, "\t[BMO] There was an issue with the file listener."))
     }
@@ -54,9 +93,14 @@ func (r *Runner) DetectFileChanges() {
                 if !ok {
                     return
                 }
-                if event.Has(fsnotify.Write)  {
-                    
-                    r.Queue <- []string{event.Name} 
+                if event.Has(fsnotify.Write) && !strings.Contains(event.Name, "_templ.go") {
+                    fmt.Println(color.Ize(color.Blue, "\t[BMO] Detected change..."))
+                    fmt.Println(event.Name)
+                    if r.Process != nil {
+                        r.Process.Process.Kill()
+                        r.WaitGroup.Add(1)
+                        go r.RunProxyServer()
+                    }
                 }
             case err, ok := <-watcher.Errors:
                 if !ok {
@@ -68,7 +112,6 @@ func (r *Runner) DetectFileChanges() {
     }()
 
    
-    add_all_paths(watcher)
 
     if err != nil {
         fmt.Println(color.Ize(color.Red, "\t[BMO] There was an issue with the file listener.\n"))
@@ -78,20 +121,13 @@ func (r *Runner) DetectFileChanges() {
 
 }
 
-func (r *Runner) Listener() {
-
-    for {
-        if len(<-r.Queue) > 0 {
-            fmt.Println("Detected change")
-        } 
-    }
-
-}
 
 
 func add_all_paths(notify *fsnotify.Watcher) {
     filepath.Walk("./", func(path string, info fs.FileInfo, err error) error {
-        notify.Add(path)
+        if path != "tmp" {
+            notify.Add(path)
+        }
         return err
     })
 }
