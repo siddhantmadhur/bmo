@@ -55,10 +55,11 @@ func (r *Runner) StartProxyServer () {
                 log.Println("detected queue")
                 if err = c.WriteMessage(websocket.TextMessage, []byte("BMO: Update detected!")); err != nil {
                     log.Println("write:", err)
-                    break
+                    r.Queue <- false
                 }
-                r.Queue <- false
+                break
             }
+
         }
     }))
 

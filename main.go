@@ -19,8 +19,8 @@ func main() {
     switch args[0] {
         case "run": 
         cfg := config.New()    
-        var bmo = runner.New(&cfg);
-        bmo.Start()
+        runner.New(&cfg);
+        <- make(chan struct{})
     case "init":
         config.Init()
 

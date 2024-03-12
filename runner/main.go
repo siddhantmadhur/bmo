@@ -68,6 +68,7 @@ func (r *Runner) RunWebServer() {
         os.Exit(1)
     }
     
+    r.Queue <- true
     fmt.Println(color.Ize(color.White, fmt.Sprintf("\t[BMO] Process is running at %d ", r.Process.Process.Pid)))
 
     if err != nil {
@@ -128,7 +129,6 @@ func (r *Runner) DetectFileChanges() {
                 }
                 if event.Has(fsnotify.Write) && flg {
                     fmt.Println(color.Ize(color.Blue, "\t[BMO] Detected change..."))
-                    r.Queue <- true
                     if r.Process != nil {
                         r.Process.Process.Kill()
                         r.WaitGroup.Add(1)

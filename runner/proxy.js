@@ -9,8 +9,8 @@ ws.addEventListener("message", async () => {
     while (!finish) {
         const res = await fetch("http://localhost:9090");
         if (res.ok) {
+            document.body.innerHTML = await res.text()
             finish = true
         }
     }
-    window.location.reload()
 })
