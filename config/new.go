@@ -37,6 +37,9 @@ type Config struct {
 }
 
 type Build struct {
+    BuildAssetsCommand []string `toml:"build_assets_cmd"`
+    BuildBinaryCommand string `toml:"build_binary_cmd"`
+    RunBinaryCommand string `toml:"run_binary_cmd"`
     ExcludedDirs []string `toml:"excluded_files"`
     ExcludedRegex []string `toml:"excluded_regex"`
     WebServerPort int `toml:"web_server_port"`

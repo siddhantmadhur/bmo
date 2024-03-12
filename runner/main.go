@@ -8,7 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
+	"regexp"
 	"sync"
 
 	"bmo.siddhantsoftware.com/v2/config"
@@ -26,6 +26,7 @@ func New(cfg *config.Config) Runner {
     var runner = Runner{
         Queue: queue,
         WaitGroup: &waitGroup,
+        Cfg: cfg,
     }
 
     waitGroup.Add(1); 
@@ -67,6 +68,7 @@ type Runner struct {
      Queue chan bool        
      WaitGroup *sync.WaitGroup
      Process *exec.Cmd
+     Cfg *config.Config
 }
 
 
@@ -94,9 +96,19 @@ func (r *Runner) DetectFileChanges() {
                 if !ok {
                     return
                 }
-                if event.Has(fsnotify.Write) && !strings.Contains(event.Name, "_templ.go") {
+                flg := true
+                for _, reg := range r.Cfg.Build.ExcludedRegex {
+                    match, err := regexp.Match(reg, []byte(event.Name))
+                    if err != nil {
+                        fmt.Println(color.Ize(color.Red, "\t[BMO] There was an error in checking excluded regex"))
+                        os.Exit(1)
+                    }
+                    if match {
+                        flg = false
+                    }
+                }
+                if event.Has(fsnotify.Write) && flg {
                     fmt.Println(color.Ize(color.Blue, "\t[BMO] Detected change..."))
-                    fmt.Println(event.Name)
                     if r.Process != nil {
                         r.Process.Process.Kill()
                         r.WaitGroup.Add(1)
@@ -125,7 +137,7 @@ func (r *Runner) DetectFileChanges() {
 
 
 func add_all_paths(notify *fsnotify.Watcher) {
-    filepath.Walk("./", func(path string, info fs.FileInfo, err error) error {
+    filepath.Walk(".", func(path string, info fs.FileInfo, err error) error {
         if path != "tmp" && path != ".git" {
             notify.Add(path)
         }
