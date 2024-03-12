@@ -39,15 +39,35 @@ func New(cfg *config.Config) Runner {
 
 func (r *Runner) RunProxyServer() {
     defer r.WaitGroup.Done();
-    exec.Command("templ", "generate").Run()
-    exec.Command("go", "build", "-o", "./tmp/main").Run()
-    r.Process = exec.Command("./tmp/main")
+
+    var side_grp sync.WaitGroup
+    for _, command := range r.Cfg.Build.BuildAssetsCommand {
+        side_grp.Add(1) 
+        go func() {
+            defer side_grp.Done()
+            cur := strings.Split(command, " ")
+            fmt.Println(cur)
+            exec.Command(cur[0], cur[1:]...).Run()
+        }()
+    }
+    side_grp.Wait()
+    cur := strings.Split(r.Cfg.Build.BuildBinaryCommand, " ")
+    exec.Command(cur[0], cur[1:]...).Run()
+    
+    cur = strings.Split(r.Cfg.Build.RunBinaryCommand, " ")
+
+    r.Process = exec.Command(cur[0], cur[1:]...)
     stdout, err := r.Process.StdoutPipe()
     if err != nil {
         fmt.Println(color.Ize(color.Red, "\t[BMO] There was an error: "), err.Error())
         os.Exit(1)
     }
     err = r.Process.Start()
+    if err != nil {
+        fmt.Println(color.Ize(color.Red, "\t[BMO] There was an error: "), err.Error())
+        os.Exit(1)
+    }
+    
     fmt.Println(color.Ize(color.White, fmt.Sprintf("\t[BMO] Process is running at %d ", r.Process.Process.Pid)))
 
     if err != nil {
