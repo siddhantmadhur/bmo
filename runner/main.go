@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"sync"
 
 	"bmo.siddhantsoftware.com/v2/config"
@@ -84,7 +85,7 @@ func (r *Runner) Start() {
 
 func (r *Runner) DetectFileChanges() {
     watcher, err := fsnotify.NewWatcher()
-    add_all_paths(watcher)
+    r.add_all_paths(watcher)
     if err != nil {
         fmt.Println(color.Ize(color.Red, "\t[BMO] There was an issue with the file listener."))
     }
@@ -136,9 +137,16 @@ func (r *Runner) DetectFileChanges() {
 
 
 
-func add_all_paths(notify *fsnotify.Watcher) {
+func (r *Runner) add_all_paths(notify *fsnotify.Watcher) {
     filepath.Walk(".", func(path string, info fs.FileInfo, err error) error {
-        if path != "tmp" && path != ".git" {
+        flg := true
+        for _, exc_path := range r.Cfg.Build.ExcludedDirs {
+            if strings.Contains(path, exc_path) {
+                flg = false
+                break;
+            }
+        }
+        if flg {
             notify.Add(path)
         }
         return err
