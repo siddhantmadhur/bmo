@@ -74,7 +74,6 @@ func (r *Runner) RunWebServer() {
         fmt.Println(color.Ize(color.Red, "\t[BMO] There was an error: "), err.Error())
         os.Exit(1)
     }
-
     scanner := bufio.NewScanner(stdout)
     scanner.Split(bufio.ScanLines)
     for scanner.Scan() {
@@ -129,6 +128,7 @@ func (r *Runner) DetectFileChanges() {
                 }
                 if event.Has(fsnotify.Write) && flg {
                     fmt.Println(color.Ize(color.Blue, "\t[BMO] Detected change..."))
+                    r.Queue <- true
                     if r.Process != nil {
                         r.Process.Process.Kill()
                         r.WaitGroup.Add(1)

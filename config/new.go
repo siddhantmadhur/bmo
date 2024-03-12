@@ -34,6 +34,7 @@ func Init() {
 
 type Config struct {
     Build Build `toml:"BUILD"`
+    Proxy Proxy `toml:"PROXY"`
 }
 
 type Build struct {
@@ -43,4 +44,8 @@ type Build struct {
     ExcludedDirs []string `toml:"excluded_files"`
     ExcludedRegex []string `toml:"excluded_regex"`
     WebServerPort int `toml:"web_server_port"`
+}
+
+type Proxy struct {
+    ProxyServerPort int `toml:"proxy_server_port"`
 }
