@@ -99,8 +99,7 @@ func (r *Runner) Start() {
 
     go r.DetectFileChanges()
 
-    for {}
-
+    r.StartProxyServer()
 }
 
 func (r *Runner) DetectFileChanges() {
