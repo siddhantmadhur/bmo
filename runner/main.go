@@ -11,12 +11,13 @@ import (
 	"strings"
 	"sync"
 
+	"bmo.siddhantsoftware.com/v2/config"
 	"github.com/TwiN/go-color"
 	"github.com/fsnotify/fsnotify"
 )
 
 
-func New() Runner {
+func New(cfg *config.Config) Runner {
     queue := make(chan bool) 
     var waitGroup sync.WaitGroup
 
@@ -125,7 +126,7 @@ func (r *Runner) DetectFileChanges() {
 
 func add_all_paths(notify *fsnotify.Watcher) {
     filepath.Walk("./", func(path string, info fs.FileInfo, err error) error {
-        if path != "tmp" {
+        if path != "tmp" && path != ".git" {
             notify.Add(path)
         }
         return err
