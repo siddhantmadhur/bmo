@@ -32,12 +32,12 @@ func New(cfg *config.Config) Runner {
 
     waitGroup.Add(1); 
     go runner.Start()
-    go runner.RunProxyServer()
+    go runner.RunWebServer()
     return runner;
 }
 
 
-func (r *Runner) RunProxyServer() {
+func (r *Runner) RunWebServer() {
     defer r.WaitGroup.Done();
 
     var side_grp sync.WaitGroup
@@ -133,7 +133,7 @@ func (r *Runner) DetectFileChanges() {
                     if r.Process != nil {
                         r.Process.Process.Kill()
                         r.WaitGroup.Add(1)
-                        go r.RunProxyServer()
+                        go r.RunWebServer()
                     }
                 }
             case err, ok := <-watcher.Errors:
