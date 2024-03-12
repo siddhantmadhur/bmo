@@ -40,11 +40,6 @@ func (r *Runner) StartProxyServer () {
     })
 
     app.Get("/ws/proxy", websocket.New(func(c *websocket.Conn) {
-        log.Println(c.Locals("allowed"))  // true
-        log.Println(c.Params("id"))       // 123
-        log.Println(c.Query("v"))         // 1.0
-        log.Println(c.Cookies("session")) // ""
-
         // websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
         var (
             err error
@@ -52,9 +47,7 @@ func (r *Runner) StartProxyServer () {
         for {
             select {
                 case <-r.Queue: 
-                log.Println("detected queue")
                 if err = c.WriteMessage(websocket.TextMessage, []byte("BMO: Update detected!")); err != nil {
-                    log.Println("write:", err)
                     r.Queue <- false
                 }
                 break
