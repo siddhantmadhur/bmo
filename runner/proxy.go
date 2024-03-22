@@ -3,9 +3,6 @@ package runner
 import (
 	"embed"
 	"fmt"
-	"log"
-	"os/exec"
-	"runtime"
 	"strings"
 
 	"github.com/gofiber/contrib/websocket"
@@ -18,11 +15,6 @@ var f embed.FS
 
 func (r *Runner) StartProxyServer () {
     app := fiber.New()
-
-    go func() {
-        openbrowser("http://localhost:9090")
-    }()
-
 
     app.Get("/_bmo/proxy.js", func(c *fiber.Ctx) error {
         data, _ := f.ReadFile("proxy.js")
@@ -44,7 +36,6 @@ func (r *Runner) StartProxyServer () {
         var (
             err error
         )
-        for {
             select {
                 case <-r.Queue: 
                 if err = c.WriteMessage(websocket.TextMessage, []byte("BMO: Update detected!")); err != nil {
@@ -52,8 +43,6 @@ func (r *Runner) StartProxyServer () {
                 }
                 break
             }
-
-        }
     }))
 
     app.All("/*", func(c *fiber.Ctx) error {
@@ -74,21 +63,3 @@ func (r *Runner) StartProxyServer () {
 }
 
 
-func openbrowser(url string) {
-	var err error
-
-	switch runtime.GOOS {
-	case "linux":
-		err = exec.Command("xdg-open", url).Start()
-	case "windows":
-		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-	case "darwin":
-		err = exec.Command("open", url).Start()
-	default:
-		err = fmt.Errorf("unsupported platform")
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
-
-}

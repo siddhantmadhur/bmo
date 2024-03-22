@@ -68,13 +68,13 @@ func (r *Runner) RunWebServer() {
         os.Exit(1)
     }
     
-    r.Queue <- true
     fmt.Println(color.Ize(color.White, fmt.Sprintf("\t[BMO] Process is running at %d ", r.Process.Process.Pid)))
 
     if err != nil {
         fmt.Println(color.Ize(color.Red, "\t[BMO] There was an error: "), err.Error())
         os.Exit(1)
     }
+    r.Queue <- true
     scanner := bufio.NewScanner(stdout)
     scanner.Split(bufio.ScanLines)
     for scanner.Scan() {
