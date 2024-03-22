@@ -9,6 +9,7 @@ import (
 	"github.com/TwiN/go-color"
 )
 
+var version = "dev" 
 
 func main() {
     args := os.Args[1:]
@@ -21,6 +22,8 @@ func main() {
         cfg := config.New()    
         runner.New(&cfg);
         <- make(chan struct{})
+    case "v":
+        fmt.Printf("BMO \nby Siddhant Madhur \nVersion: %s\n", version)
     case "init":
         config.Init()
 
