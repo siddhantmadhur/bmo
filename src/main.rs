@@ -1,4 +1,4 @@
-use std::{env, path::Path, process::Command};
+use std::{env, path::Path, process::Command, thread, time::Duration};
 
 use notify::{event::DataChange, Result, Watcher};
 use walkdir::{DirEntry, WalkDir};
@@ -8,14 +8,20 @@ use walkdir::{DirEntry, WalkDir};
 fn is_hidden(entry: &DirEntry) -> bool {
     entry.file_name()
          .to_str()
-         .map(|s| vec!["target", ".git"].contains(&s))
+         .map(|s| vec!["target", ".git", "bin"].contains(&s))
          .unwrap_or(false)
 }
 
 
 fn main() {
 
-    let mut command = Command::new("ls");
+
+    Command::new("go")
+        .args(["build", "-o", "bin/main", "."])
+        .spawn()
+        .unwrap();
+
+    let mut command = Command::new("./bin/main");
 
     let mut child = command.spawn()
         .expect("Error in spawning");
@@ -26,7 +32,18 @@ fn main() {
                 match event.kind {
                     notify::EventKind::Modify(notify::event::ModifyKind::Data(_)) => {
 
+                            
                             child.kill().expect("command couldn't be killed");
+                            child.wait().unwrap();
+
+
+                            let mut start = Command::new("go")
+                                .args(["build", "-o", "bin/main", "."])
+                                .spawn()
+                                .unwrap();
+
+                            start.wait();
+
                             child = command.spawn()
                                 .expect("Failed to restart");
                             
