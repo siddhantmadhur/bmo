@@ -1,4 +1,4 @@
-use std::{env, path::Path, process::{Child, Command}, thread, time::Duration};
+use std::{env::{self, args}, path::Path, process::{Child, Command}, thread, time::Duration};
 
 use config::Config;
 use notify::{event::DataChange, Result, Watcher};
@@ -25,51 +25,74 @@ fn run_command(cmd: &str) -> Child {
 fn main() {
 
 
-    let cfg = config::new();
+    let arg = args().collect::<Vec<String>>();
 
-    run_command(&cfg.final_build_command);
+    match arg[1].as_str() {
+        "init" => config::init(),
+        "run" => {
 
-    let mut command = run_command(&cfg.start_process);
-
-
-    let event_fn = move | res: Result<notify::Event>| {
-        match res {
-            Ok(event) => {
-                match event.kind {
-                    notify::EventKind::Modify(notify::event::ModifyKind::Data(_)) => {
-
-                            
-                            command.kill().expect("command couldn't be killed");
-                            command.wait().unwrap();
+            let cfg = config::new();
 
 
-                            let mut build = run_command(&cfg.final_build_command);
-                            let _ = build.wait();
+            for cmd in cfg.build_commands {
+                let mut proc = run_command(&cmd);
+                let _ = proc.wait();
+            }
 
-                            command = run_command(&cfg.start_process); 
-                            
-                        println!("event: {:?}", event)
+            run_command(&cfg.final_build_command);
+
+            let mut command = run_command(&cfg.start_process);
+
+
+            let event_fn = move | res: Result<notify::Event>| {
+                match res {
+                    Ok(event) => {
+                        match event.kind {
+                            notify::EventKind::Modify(notify::event::ModifyKind::Data(_)) => {
+
+
+                                command.kill().expect("command couldn't be killed");
+                                command.wait().unwrap();
+                                let temp_cfg = config::new();
+                                println!("Build Cmds: {:?}", &temp_cfg.build_commands);
+
+                                for cmd in temp_cfg.build_commands.into_iter() {
+                                    let mut proc = run_command(&cmd);
+                                    let _ = proc.wait();
+                                }
+
+
+                                let mut build = run_command(&cfg.final_build_command.clone());
+                                let _ = build.wait();
+
+                                command = run_command(&cfg.start_process.clone()); 
+
+                                println!("event: {:?}", event)
+                            },
+                            _ => ()
+                        }
+
+
                     },
-                    _ => ()
+                    Err(e) => println!("watch error: {:?}", e),
                 }
+            };
 
-                
-            },
-            Err(e) => println!("watch error: {:?}", e),
+            let mut watcher = notify::recommended_watcher(event_fn)
+                .unwrap();
+
+
+            for entry in WalkDir::new(env::current_dir().unwrap()).into_iter().filter_entry(|e| !is_hidden(e)) {
+                let path = entry.unwrap();
+                println!("Path: {}", path.path().display());
+                let _ = watcher.watch(path.path(), notify::RecursiveMode::NonRecursive);
+            }
+
+            loop {}
         }
-    };
-
-    let mut watcher = notify::recommended_watcher(event_fn)
-        .unwrap();
-
-
-    for entry in WalkDir::new(env::current_dir().unwrap()).into_iter().filter_entry(|e| !is_hidden(e)) {
-        let path = entry.unwrap();
-        println!("Path: {}", path.path().display());
-        let _ = watcher.watch(path.path(), notify::RecursiveMode::NonRecursive);
+        _ => println!("Argument not recognized")
     }
 
-    loop {}
 
 
 }
